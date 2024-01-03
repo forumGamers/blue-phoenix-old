@@ -63,4 +63,8 @@ export default abstract class GlobalConstant {
     510: "Not Extended",
     511: "Network Authentication Required",
   };
+
+  public static uploadDirr = "./uploads";
+
+  public static forbiddenChar = /[;'"\\]/g;
 }

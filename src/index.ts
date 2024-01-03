@@ -3,12 +3,12 @@ import cors from "cors";
 import compression from "compression";
 import helmet from "helmet";
 import morgan from "morgan";
-import { format, utcToZonedTime } from "date-fns-tz";
 import AppError from "./base/error";
 import GlobalConstant from "./constant";
 import router from "./routes";
 import notfound from "./routes/notfound";
 import errorHandler from "./middlewares/errorHandler";
+import { format } from "date-fns";
 
 export default new (class App {
   public app: Application;
@@ -44,10 +44,7 @@ export default new (class App {
       })
     );
     morgan.token("date", () =>
-      format(
-        utcToZonedTime(new Date(), "Asia/Jakarta"),
-        "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"
-      )
+      format(new Date(), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx")
     );
     morgan.format(
       "production",
