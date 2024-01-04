@@ -1,7 +1,9 @@
 import type { BaseDocument } from "../base/model";
+import type ChatAttributes from "./chat";
+import { Types } from "mongoose";
 
 export default interface RoomAttributes extends BaseDocument {
-  type: "Private" | "Group";
+  type: RoomType;
   users: {
     userId: string;
     addedAt: Date;
@@ -12,9 +14,10 @@ export default interface RoomAttributes extends BaseDocument {
   name: string;
   role: {
     userId: string;
-    role: "Admin" | "Member";
+    role: RoomRole;
   }[];
   owner: string;
+  chats: ChatAttributes[];
 }
 
 export type RoomType = "Private" | "Group";
@@ -26,7 +29,7 @@ export interface CreateRoomInput {
 }
 
 export interface Room {
-  type: "Private" | "Group";
+  type: RoomType;
   users: {
     userId: string;
     addedAt: Date;
@@ -37,7 +40,19 @@ export interface Room {
   name: string;
   role: {
     userId: string;
-    role: "Admin" | "Member";
+    role: RoomRole;
   }[];
   owner: string;
+  chats: ChatAttributes[];
+}
+
+export type RoomRole = "Admin" | "Member";
+
+export interface ListRoom {
+  name?: string;
+  type: RoomType;
+  users: string[];
+  chats: ChatAttributes[];
+  _id: Types.ObjectId;
+  image: string;
 }

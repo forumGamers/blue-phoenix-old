@@ -42,6 +42,40 @@ export default new (class Room extends BaseModel<RoomAttributes> {
         owner: {
           type: String,
         },
+        chats: [
+          {
+            senderId: {
+              type: String,
+              required: true,
+            },
+            message: {
+              type: String,
+            },
+            image: {
+              type: String,
+              required: false,
+            },
+            imageId: {
+              type: String,
+              required: false,
+            },
+            isRead: {
+              type: Boolean,
+              default: false,
+            },
+            status: {
+              type: String,
+              enum: ["plain", "updated", "deleted"],
+              default: "plain",
+            },
+            createdAt: {
+              type: Date,
+            },
+            updatedAt: {
+              type: Date,
+            },
+          },
+        ],
       })
     );
   }

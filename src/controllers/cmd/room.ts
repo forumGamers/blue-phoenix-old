@@ -62,6 +62,7 @@ export default abstract class RoomCmdController {
         userId,
         role: userId === UUID && payload.type === "Group" ? "Admin" : "Member",
       }));
+      payload.chats = [];
 
       response({
         res,

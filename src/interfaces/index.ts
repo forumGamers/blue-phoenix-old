@@ -7,3 +7,8 @@ export interface MulterFile {
   buffer: Buffer;
   filename: string;
 }
+
+export type ResponseDataWithTotal<T = any> = {
+  data: T[];
+  total: number;
+};
