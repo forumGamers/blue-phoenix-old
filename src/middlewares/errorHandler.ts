@@ -28,6 +28,8 @@ class ErrorHandler {
     if ((err as ApplicationError).data)
       payload.data = (err as ApplicationError).data;
 
+    if (code === 500) console.log(err);
+
     response(payload);
   }
 }

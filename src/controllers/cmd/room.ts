@@ -7,6 +7,7 @@ import type { Room } from "../../interfaces/room";
 import room from "../../models/room";
 import response from "../../middlewares/response";
 import AppError from "../../base/error";
+import { Types } from "mongoose";
 
 export default abstract class RoomCmdController {
   public static async createRoom(
@@ -71,10 +72,70 @@ export default abstract class RoomCmdController {
         data: await room.create(payload),
       });
     } catch (err) {
-      console.log(err);
       next(err);
     } finally {
       if (file) unlinkSync(filePath);
+    }
+  }
+
+  public static async deleteUser(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { UUID } = req.user;
+      const { userId, roomId } = req.params;
+
+      if (UUID === userId)
+        throw new AppError({ message: "cannot self delete", statusCode: 400 });
+
+      const roomObjectId = new Types.ObjectId(roomId);
+
+      const data = await room.findById(roomObjectId);
+      if (!data)
+        throw new AppError({ message: "Data not found", statusCode: 404 });
+
+      if (data.type === "Private")
+        throw new AppError({ message: "Forbidden", statusCode: 403 });
+
+      if (
+        data.role.find((el) => el.userId === UUID)?.role !== "Admin" ||
+        data.owner !== UUID
+      )
+        throw new AppError({ message: "Forbidden", statusCode: 403 });
+
+      const user = data.users.find((user) => user.userId === userId);
+      if (!user)
+        throw new AppError({ message: "User not found", statusCode: 404 });
+
+      if (
+        data.role.find((el) => el.userId === user.userId)?.role === "Admin" &&
+        data.owner !== UUID
+      )
+        throw new AppError({ message: "Cannot delete admin", statusCode: 403 });
+
+      await room.updateOne(
+        { _id: roomObjectId },
+        {
+          $pull: {
+            users: {
+              userId: userId,
+            },
+            role: {
+              userId: userId,
+            },
+          },
+        }
+      );
+
+      response({
+        res,
+        code: 200,
+        message: "success",
+      });
+    } catch (err) {
+      next(err);
     }
   }
 }
