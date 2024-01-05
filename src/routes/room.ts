@@ -10,6 +10,11 @@ export default new (class RoomRoute extends BaseRoutes {
       .post("/", multer.single("image"), RoomCmdController.createRoom)
       .get("/", RoomQueryController.getUserRoom)
       .delete(
+        "/:roomId",
+        checkValidParamObjectId("roomId"),
+        RoomCmdController.leaveRoom
+      )
+      .delete(
         "/:roomId/:userId",
         checkValidParamObjectId("roomId"),
         RoomCmdController.deleteUser

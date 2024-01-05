@@ -7,7 +7,7 @@ import type { Room } from "../../interfaces/room";
 import room from "../../models/room";
 import response from "../../middlewares/response";
 import AppError from "../../base/error";
-import { Types } from "mongoose";
+import { Types, UpdateQuery } from "mongoose";
 
 export default abstract class RoomCmdController {
   public static async createRoom(
@@ -96,12 +96,10 @@ export default abstract class RoomCmdController {
       if (!data)
         throw new AppError({ message: "Data not found", statusCode: 404 });
 
-      if (data.type === "Private")
-        throw new AppError({ message: "Forbidden", statusCode: 403 });
-
       if (
         data.role.find((el) => el.userId === UUID)?.role !== "Admin" ||
-        data.owner !== UUID
+        data.owner !== UUID ||
+        data.type === "Private"
       )
         throw new AppError({ message: "Forbidden", statusCode: 403 });
 
@@ -120,14 +118,67 @@ export default abstract class RoomCmdController {
         {
           $pull: {
             users: {
-              userId: userId,
+              userId,
             },
             role: {
-              userId: userId,
+              userId,
             },
           },
         }
       );
+
+      response({
+        res,
+        code: 200,
+        message: "success",
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  public static async leaveRoom(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { roomId } = req.params;
+      const { UUID } = req.user;
+      const roomObjectId = new Types.ObjectId(roomId);
+
+      const data = await room.findById(roomObjectId);
+      if (!data)
+        throw new AppError({ message: "data not found", statusCode: 404 });
+
+      const query: UpdateQuery<Room> = {
+        $pull: {
+          users: {
+            userId: UUID,
+          },
+          role: {
+            userId: UUID,
+          },
+        },
+      };
+
+      if (data.owner === UUID) {
+        for (let i = data.role.length - 1; i >= 0; i--)
+          if (data.role[i].role === "Admin") {
+            query.$set = {
+              owner: data.role[i].userId,
+            };
+            break;
+          }
+
+        if (!query.$set)
+          throw new AppError({
+            message: "please set a admin first",
+            statusCode: 400,
+          });
+      }
+
+      await room.updateOne({ _id: roomObjectId }, query);
 
       response({
         res,
