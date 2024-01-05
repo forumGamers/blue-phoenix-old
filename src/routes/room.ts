@@ -10,6 +10,11 @@ export default new (class RoomRoute extends BaseRoutes {
       .post("/", multer.single("image"), RoomCmdController.createRoom)
       .get("/", RoomQueryController.getUserRoom)
       .patch(
+        "/admin/down/:roomId",
+        checkValidParamObjectId("roomId"),
+        RoomCmdController.downAdmin
+      )
+      .patch(
         "/admin/:roomId",
         checkValidParamObjectId("roomId"),
         RoomCmdController.setAdmin

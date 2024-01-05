@@ -39,10 +39,10 @@ export default abstract class RoomCmdController {
           payload.image = url;
           payload.imageId = fileId;
         }
+        payload.owner = UUID;
       }
 
       payload.type = users.length > 1 ? "Group" : "Private";
-      payload.owner = UUID;
       payload.users = [
         ...users
           .map((userId) => ({
@@ -57,7 +57,7 @@ export default abstract class RoomCmdController {
         {
           userId: UUID,
           addedAt: new Date(),
-          role: "Admin",
+          role: payload.type === "Group" ? "Admin" : "Member",
         },
       ];
 
@@ -121,9 +121,6 @@ export default abstract class RoomCmdController {
             users: {
               userId,
             },
-            role: {
-              userId,
-            },
           },
         }
       );
@@ -161,9 +158,6 @@ export default abstract class RoomCmdController {
       const query: UpdateQuery<Room> = {
         $pull: {
           users: {
-            userId: UUID,
-          },
-          role: {
             userId: UUID,
           },
         },
@@ -223,7 +217,10 @@ export default abstract class RoomCmdController {
         throw new AppError({ message: "Forbidden", statusCode: 403 });
 
       const target = data.users.findIndex((el) => el.userId === userId);
-      if (target === -1 || data.users[target].role === "Admin")
+      if (target === -1)
+        throw new AppError({ message: "user not found", statusCode: 404 });
+
+      if (data.users[target].role === "Admin")
         throw new AppError({ message: "Conflict", statusCode: 409 });
 
       await room.updateOne(
@@ -231,6 +228,53 @@ export default abstract class RoomCmdController {
         {
           $set: {
             [`users.${target}.role`]: "Admin",
+          },
+        }
+      );
+
+      response({
+        res,
+        code: 200,
+        message: "success",
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  public static async downAdmin(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { roomId } = req.params;
+      const { userId } = await roomValidator.validateSetAdmin(req.body);
+      const { UUID } = req.user;
+      const roomObjectId = new Types.ObjectId(roomId);
+
+      const data = await room.findById(roomObjectId);
+      if (!data)
+        throw new AppError({ message: "data not found", statusCode: 404 });
+
+      if (data.type === "Private")
+        throw new AppError({
+          message: "cannot set admin in private room",
+          statusCode: 400,
+        });
+
+      if (data.owner !== UUID || userId === UUID)
+        throw new AppError({ message: "Forbidden", statusCode: 403 });
+
+      const idx = data.users.findIndex((el) => el.userId === userId);
+      if (idx === -1)
+        throw new AppError({ message: "user not found", statusCode: 404 });
+
+      await room.updateOne(
+        { _id: roomObjectId },
+        {
+          $set: {
+            [`users.${idx}.role`]: "Member",
           },
         }
       );
