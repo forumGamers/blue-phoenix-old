@@ -33,4 +33,13 @@ export default new (class RoomValidator extends BaseValidation {
       data
     );
   }
+
+  public async validateSetAdmin(data: any) {
+    return await this.validate<{ userId: string }>(
+      yup.object().shape({
+        userId: yup.string().required("please input userId"),
+      }),
+      data
+    );
+  }
 })();

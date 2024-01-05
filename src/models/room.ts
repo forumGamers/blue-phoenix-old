@@ -16,6 +16,7 @@ export default new (class Room extends BaseModel<RoomAttributes> {
           {
             userId: String,
             addedAt: Date,
+            role: String,
           },
         ],
         description: {
@@ -33,12 +34,6 @@ export default new (class Room extends BaseModel<RoomAttributes> {
         name: {
           type: String,
         },
-        role: [
-          {
-            userId: String,
-            role: String,
-          },
-        ],
         owner: {
           type: String,
         },

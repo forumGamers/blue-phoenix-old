@@ -3,7 +3,7 @@ import roomValidator from "../../validations/room";
 import { readFileSync, unlinkSync } from "fs";
 import { uploadImg } from "../../lib/imagekit";
 import GlobalConstant from "../../constant";
-import type { Room } from "../../interfaces/room";
+import type { Room, RoomRole } from "../../interfaces/room";
 import room from "../../models/room";
 import response from "../../middlewares/response";
 import AppError from "../../base/error";
@@ -48,21 +48,22 @@ export default abstract class RoomCmdController {
           .map((userId) => ({
             userId,
             addedAt: new Date(),
+            role:
+              userId === UUID && payload.type === "Group"
+                ? "Admin"
+                : ("Member" as RoomRole),
           }))
           .filter(({ userId }) => userId !== UUID),
         {
           userId: UUID,
           addedAt: new Date(),
+          role: "Admin",
         },
       ];
 
       if (payload.users.length < 2)
         throw new AppError({ message: "There is no user", statusCode: 400 }); //check if user input himself
 
-      payload.role = payload.users.map(({ userId }) => ({
-        userId,
-        role: userId === UUID && payload.type === "Group" ? "Admin" : "Member",
-      }));
       payload.chats = [];
 
       response({
@@ -97,7 +98,7 @@ export default abstract class RoomCmdController {
         throw new AppError({ message: "Data not found", statusCode: 404 });
 
       if (
-        data.role.find((el) => el.userId === UUID)?.role !== "Admin" ||
+        data.users.find((el) => el.userId === UUID)?.role !== "Admin" ||
         data.owner !== UUID ||
         data.type === "Private"
       )
@@ -108,7 +109,7 @@ export default abstract class RoomCmdController {
         throw new AppError({ message: "User not found", statusCode: 404 });
 
       if (
-        data.role.find((el) => el.userId === user.userId)?.role === "Admin" &&
+        data.users.find((el) => el.userId === user.userId)?.role === "Admin" &&
         data.owner !== UUID
       )
         throw new AppError({ message: "Cannot delete admin", statusCode: 403 });
@@ -151,6 +152,12 @@ export default abstract class RoomCmdController {
       if (!data)
         throw new AppError({ message: "data not found", statusCode: 404 });
 
+      if (data.type === "Private")
+        throw new AppError({
+          message: "cannot leave private room",
+          statusCode: 400,
+        });
+
       const query: UpdateQuery<Room> = {
         $pull: {
           users: {
@@ -163,10 +170,10 @@ export default abstract class RoomCmdController {
       };
 
       if (data.owner === UUID) {
-        for (let i = data.role.length - 1; i >= 0; i--)
-          if (data.role[i].role === "Admin") {
+        for (let i = data.users.length - 1; i >= 0; i--)
+          if (data.users[i].role === "Admin") {
             query.$set = {
-              owner: data.role[i].userId,
+              owner: data.users[i].userId,
             };
             break;
           }
@@ -179,6 +186,54 @@ export default abstract class RoomCmdController {
       }
 
       await room.updateOne({ _id: roomObjectId }, query);
+
+      response({
+        res,
+        code: 200,
+        message: "success",
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  public static async setAdmin(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { roomId } = req.params;
+      const { userId } = await roomValidator.validateSetAdmin(req.body);
+      const { UUID } = req.user;
+      const roomObjectId = new Types.ObjectId(roomId);
+
+      const data = await room.findById(roomObjectId);
+      if (!data)
+        throw new AppError({ message: "data not found", statusCode: 404 });
+
+      if (data.type === "Private")
+        throw new AppError({
+          message: "cannot set admin in private room",
+          statusCode: 400,
+        });
+
+      const userRole = data.users.find((el) => el.userId === UUID);
+      if (!userRole || userRole.role !== "Admin" || data.owner !== UUID)
+        throw new AppError({ message: "Forbidden", statusCode: 403 });
+
+      const target = data.users.findIndex((el) => el.userId === userId);
+      if (target === -1 || data.users[target].role === "Admin")
+        throw new AppError({ message: "Conflict", statusCode: 409 });
+
+      await room.updateOne(
+        { _id: roomObjectId },
+        {
+          $set: {
+            [`users.${target}.role`]: "Admin",
+          },
+        }
+      );
 
       response({
         res,
