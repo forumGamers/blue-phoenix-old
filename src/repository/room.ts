@@ -7,10 +7,10 @@ export default new (class RoomRepository {
     userId: string,
     $skip = 0,
     $limit = 15
-  ): Promise<(ResponseDataWithTotal<ListRoom> & { type: string })[]> {
+  ): Promise<(ResponseDataWithTotal<ListRoom> & { _id: string })[]> {
     try {
       return await room.aggregate<
-        ResponseDataWithTotal<ListRoom> & { type: string }
+        ResponseDataWithTotal<ListRoom> & { _id: string }
       >([
         {
           $match: {
@@ -58,7 +58,7 @@ export default new (class RoomRepository {
     } catch (err) {
       return [
         {
-          type: "",
+          _id: "",
           data: [],
           total: 0,
         },

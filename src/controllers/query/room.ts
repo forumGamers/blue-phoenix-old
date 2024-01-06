@@ -18,7 +18,6 @@ export default abstract class RoomQueryController {
 
       if (!data.length)
         throw new AppError({ message: "data not found", statusCode: 404 });
-      const [Group, Private] = data;
 
       response(
         {
@@ -26,8 +25,12 @@ export default abstract class RoomQueryController {
           code: 200,
           message: "OK",
           data: {
-            Group: { ...Group, total: undefined },
-            Private: { ...Private, total: undefined },
+            Group: data
+              .map((el) => (el._id === "Group" ? el.data : null))
+              .filter((el) => el)[0],
+            Private: data
+              .map((el) => (el._id === "Private" ? el.data : null))
+              .filter((el) => el)[0],
           },
         },
         {
