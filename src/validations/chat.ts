@@ -22,4 +22,17 @@ export default new (class ChatValidator extends BaseValidation {
       data
     );
   }
+
+  public async validateSetReadStatus(data: any) {
+    return await this.validate<{ chatIds: string[] }>(
+      yup.object().shape({
+        chatIds: yup
+          .array()
+          .of(yup.string().required("userId is required"))
+          .required("userIds is required")
+          .min(1, "min input 1 userId"),
+      }),
+      data
+    );
+  }
 })();

@@ -83,4 +83,42 @@ export default abstract class ChatCmdController {
       if (file) unlinkSync(filePath);
     }
   }
+
+  public static async setRead(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const { roomId } = req.params;
+      const { UUID } = req.user;
+      const { chatIds } = await chatValidator.validateSetReadStatus(req.body);
+      const roomObjectId = new Types.ObjectId(roomId);
+
+      const data = await room.findById(roomObjectId);
+      if (!data)
+        throw new AppError({ message: "room not found", statusCode: 404 });
+
+      const query: any = {
+        $set: {},
+      };
+
+      for (const chatId of chatIds) {
+        const idx = data.chats.findIndex(
+          (el) => el._id === new Types.ObjectId(chatId),
+        );
+        if (idx !== -1 && data.chats[idx].senderId !== UUID)
+          query.$set[`chats.$${idx}`] = true;
+      }
+
+      await room.updateOne({ _id: roomObjectId }, query);
+      response({
+        res,
+        code: 200,
+        message: "success",
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
 }

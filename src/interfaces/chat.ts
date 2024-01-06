@@ -1,3 +1,5 @@
+import { Types } from "mongoose";
+
 export default interface ChatAttributes {
   senderId: string;
   message?: string;
@@ -8,6 +10,7 @@ export default interface ChatAttributes {
   mediaType?: ChatMediaType;
   createdAt: Date;
   updatedAt: Date;
+  _id: Types.ObjectId;
 }
 
 export type ChatStatus = "plain" | "updated" | "deleted";
