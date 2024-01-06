@@ -9,6 +9,6 @@ export default abstract class Helper {
         ...chat,
         message: chat.message ? encryption.decrypt(chat.message) : "",
       })),
-    }));
+    })); //filter yg statusnya deleted jangan ditampilin
   }
 }

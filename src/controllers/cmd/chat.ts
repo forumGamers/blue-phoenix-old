@@ -104,9 +104,7 @@ export default abstract class ChatCmdController {
       };
 
       for (const chatId of chatIds) {
-        const idx = data.chats.findIndex(
-          (el) => el._id.toString() === chatId,
-        );
+        const idx = data.chats.findIndex((el) => el._id.toString() === chatId);
         if (idx !== -1 && data.chats[idx].senderId !== UUID)
           query.$set[`chats.${idx}.isRead`] = true;
       }
@@ -152,6 +150,51 @@ export default abstract class ChatCmdController {
           $set: {
             [`chats.${chatIdx}.message`]: encryption.encrypt(message),
             [`chats.${chatIdx}.status`]: "updated",
+          },
+        },
+      );
+
+      response({
+        res,
+        code: 200,
+        message: "success",
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  public static async hideMsg(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const { roomId, chatId } = req.params;
+      const { UUID } = req.user;
+      const roomObjectId = new Types.ObjectId(roomId);
+
+      const data = await room.findById(roomObjectId);
+      if (!data)
+        throw new AppError({ message: "room not found", statusCode: 404 });
+
+      const chatIdx = data.chats.findIndex(
+        (el) => el._id.toString() === chatId,
+      );
+      if (chatIdx === -1)
+        throw new AppError({ message: "chat not found", statusCode: 404 });
+
+      if (data.chats[chatIdx].senderId !== UUID)
+        throw new AppError({ message: "Forbidden", statusCode: 403 });
+
+      if (data.chats[chatIdx].status === "deleted")
+        throw new AppError({ message: "Conflict", statusCode: 409 });
+
+      await room.updateOne(
+        { _id: roomObjectId },
+        {
+          $set: {
+            [`chats.${chatIdx}.status`]: "deleted",
           },
         },
       );

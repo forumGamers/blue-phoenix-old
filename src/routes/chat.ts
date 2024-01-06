@@ -10,18 +10,24 @@ export default new (class ChatRouter extends BaseRoutes {
         "/:roomId",
         multer.single("file"),
         checkValidParamObjectId("roomId"),
-        ChatCmdController.createChat
+        ChatCmdController.createChat,
       )
       .patch(
         "/:roomId/read-status",
         checkValidParamObjectId("roomId"),
-        ChatCmdController.setRead
+        ChatCmdController.setRead,
       )
       .patch(
         "/:roomId/:chatId/message",
         checkValidParamObjectId("roomId"),
         checkValidParamObjectId("chatId"),
-        ChatCmdController.editMsg
+        ChatCmdController.editMsg,
+      )
+      .delete(
+        "/:roomId/:chatId/message",
+        checkValidParamObjectId("roomId"),
+        checkValidParamObjectId("chatId"),
+        ChatCmdController.hideMsg,
       );
   }
 })().router;
