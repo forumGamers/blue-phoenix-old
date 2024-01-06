@@ -15,8 +15,8 @@ export default abstract class RoomCmdController {
     res: Response,
     next: NextFunction
   ): Promise<void> {
-    const file = await roomValidator.validateImage(req.file);
-    const filePath = `${GlobalConstant.uploadDirr}/${file?.filename}`;
+    let file = null;
+    let filePath = "";
     try {
       const { UUID } = req.user;
       const {
@@ -27,6 +27,8 @@ export default abstract class RoomCmdController {
       const payload: Room = {} as Room;
 
       if (users.length > 1) {
+        file = await roomValidator.validateImage(req.file);
+        filePath = `${GlobalConstant.uploadDirr}/${file?.filename}`;
         payload.name = name ?? "No Name";
         payload.description = description ?? "";
         if (file) {

@@ -14,22 +14,27 @@ export default abstract class RoomQueryController {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 15;
 
-      const [{ data, total = 0 }] = await roomRepo.getUserRoom(
-        UUID,
-        (page - 1) * limit,
-        limit
-      );
+      const data = await roomRepo.getUserRoom(UUID, (page - 1) * limit, limit);
 
-      if (!total)
+      if (!data.length)
         throw new AppError({ message: "data not found", statusCode: 404 });
+      const [Group, Private] = data;
 
       response(
-        { res, code: 200, message: "OK", data },
         {
-          totalData: total,
+          res,
+          code: 200,
+          message: "OK",
+          data: {
+            Group: { ...Group, total: undefined },
+            Private: { ...Private, total: undefined },
+          },
+        },
+        {
+          totalData: data[0].total,
           limit,
           page,
-          totalPage: Math.ceil(total / limit),
+          totalPage: Math.ceil(data[0].total / limit),
         }
       );
     } catch (err) {
