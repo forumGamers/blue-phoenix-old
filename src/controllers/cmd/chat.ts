@@ -14,7 +14,7 @@ export default abstract class ChatCmdController {
   public static async createChat(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> {
     let file = null;
     let filePath = "";
@@ -61,13 +61,16 @@ export default abstract class ChatCmdController {
         }
       }
 
-      payload.createdAt = new Date()
-      payload.updatedAt = new Date()
-      await room.updateOne({ _id: roomObjectId },{
-        $push:{
-            chats:payload
-        }
-      });
+      payload.createdAt = new Date();
+      payload.updatedAt = new Date();
+      await room.updateOne(
+        { _id: roomObjectId },
+        {
+          $push: {
+            chats: payload,
+          },
+        },
+      );
 
       response({
         res,
@@ -76,6 +79,8 @@ export default abstract class ChatCmdController {
       });
     } catch (err) {
       next(err);
+    } finally {
+      if (file) unlinkSync(filePath);
     }
   }
 }
