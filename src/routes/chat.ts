@@ -6,8 +6,22 @@ import multer from "../middlewares/multer";
 export default new (class ChatRouter extends BaseRoutes {
   routes(): void {
     this.router
-      .use(checkValidParamObjectId("roomId"))
-      .post("/:roomId", multer.single("file"), ChatCmdController.createChat)
-      .patch("/:roomId/read-status", ChatCmdController.setRead);
+      .post(
+        "/:roomId",
+        multer.single("file"),
+        checkValidParamObjectId("roomId"),
+        ChatCmdController.createChat
+      )
+      .patch(
+        "/:roomId/read-status",
+        checkValidParamObjectId("roomId"),
+        ChatCmdController.setRead
+      )
+      .patch(
+        "/:roomId/:chatId/message",
+        checkValidParamObjectId("roomId"),
+        checkValidParamObjectId("chatId"),
+        ChatCmdController.editMsg
+      );
   }
 })().router;

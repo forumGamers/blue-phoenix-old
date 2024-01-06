@@ -28,9 +28,18 @@ export default new (class ChatValidator extends BaseValidation {
       yup.object().shape({
         chatIds: yup
           .array()
-          .of(yup.string().required("userId is required"))
-          .required("userIds is required")
-          .min(1, "min input 1 userId"),
+          .of(yup.string().required("chatId is required"))
+          .required("chatIds is required")
+          .min(1, "min input 1 chatId"),
+      }),
+      data
+    );
+  }
+
+  public async validateEditMsg(data: any) {
+    return await this.validate<{ message: string }>(
+      yup.object().shape({
+        message: yup.string().required("please input edited message"),
       }),
       data
     );
