@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import roomRepo from "../../repository/room";
 import AppError from "../../base/error";
 import response from "../../middlewares/response";
+import Helper from "../../helpers";
 
 export default abstract class RoomQueryController {
   public static async getUserRoom(
@@ -26,11 +27,17 @@ export default abstract class RoomQueryController {
           message: "OK",
           data: {
             Group: data
-              .map((el) => (el._id === "Group" ? el.data : null))
-              .filter((el) => el)[0],
+              .filter((el) => el._id === "Group")
+              .map((el) => ({
+                ...el,
+                data: Helper.decryptChats(el.data),
+              })),
             Private: data
-              .map((el) => (el._id === "Private" ? el.data : null))
-              .filter((el) => el)[0],
+              .filter((el) => el._id === "Private")
+              .map((el) => ({
+                ...el,
+                data: Helper.decryptChats(el.data),
+              })),
           },
         },
         {

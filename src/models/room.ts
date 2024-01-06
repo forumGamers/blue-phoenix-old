@@ -54,6 +54,11 @@ export default new (class Room extends BaseModel<RoomAttributes> {
               type: String,
               required: false,
             },
+            mediaType: {
+              type: String,
+              enum: ["image", "video"],
+              required: false,
+            },
             isRead: {
               type: Boolean,
               default: false,

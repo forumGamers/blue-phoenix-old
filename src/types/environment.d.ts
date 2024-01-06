@@ -7,6 +7,7 @@ declare global {
       IMAGEKIT_ENDPOINT_URL: string;
       CORS_LIST: string;
       SECRET: string;
+      ENCRYPTION_KEY: string;
     }
   }
 }

@@ -7,7 +7,7 @@ import type { Room, RoomRole } from "../../interfaces/room";
 import room from "../../models/room";
 import response from "../../middlewares/response";
 import AppError from "../../base/error";
-import { Types, UpdateQuery } from "mongoose";
+import { Types, type UpdateQuery } from "mongoose";
 
 export default abstract class RoomCmdController {
   public static async createRoom(

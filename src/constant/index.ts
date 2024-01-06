@@ -67,4 +67,18 @@ export default abstract class GlobalConstant {
   public static uploadDirr = "./uploads";
 
   public static forbiddenChar = /[;'"\\]/g;
+
+  public static imageType = [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/gif",
+  ];
+
+  public static videoType = [
+    "video/mp4",
+    "video/x-msvideo",
+    "video/x-matroska",
+    " video/quicktime",
+  ];
 }

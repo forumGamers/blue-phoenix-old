@@ -59,8 +59,23 @@ export default abstract class BaseValidation {
     mimetype: yup
       .string()
       .oneOf(
-        ["image/jpeg", "image/jpg", "image/png"],
-        "image must be oneof .jpg .jpeg .png"
+        GlobalConstant.imageType,
+        "image must be oneof .jpg .jpeg .png .gif"
+      ),
+    size: yup.number().max(10000000, "max file size is 10mb"),
+  };
+
+  protected mediaChatValidator = {
+    fieldname: yup.string(),
+    originalname: yup.string(),
+    filename: yup.string(),
+    encoding: yup.string(),
+    buffer: yup.mixed(),
+    mimetype: yup
+      .string()
+      .oneOf(
+        [...GlobalConstant.imageType, ...GlobalConstant.videoType],
+        "file type is not supported"
       ),
     size: yup.number().max(10000000, "max file size is 10mb"),
   };

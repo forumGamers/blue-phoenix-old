@@ -1,17 +1,15 @@
 import GlobalConstant from "../constant";
 
+export interface AppErrorConstructor {
+  message: string;
+  statusCode: number;
+  data?: any;
+}
+
 export default class AppError extends Error {
   public statusCode: number;
   public data?: any;
-  constructor({
-    message,
-    statusCode,
-    data,
-  }: {
-    message: string;
-    statusCode: number;
-    data?: any;
-  }) {
+  constructor({ message, statusCode, data }: AppErrorConstructor) {
     super(message);
 
     Object.setPrototypeOf(this, AppError.prototype);

@@ -4,5 +4,12 @@ export default interface ChatAttributes {
   image?: string;
   imageId?: string;
   isRead: boolean;
-  status: "plain" | "updated" | "deleted";
+  status: ChatStatus;
+  mediaType?: ChatMediaType;
+  createdAt: Date;
+  updatedAt: Date;
 }
+
+export type ChatStatus = "plain" | "updated" | "deleted";
+
+export type ChatMediaType = "image" | "video";
