@@ -3,6 +3,8 @@ import roomRepo from "../../repository/room";
 import AppError from "../../base/error";
 import response from "../../middlewares/response";
 import Helper from "../../helpers";
+import { Types } from "mongoose";
+import room from "../../models/room";
 
 export default abstract class RoomQueryController {
   public static async getUserRoom(
@@ -47,6 +49,51 @@ export default abstract class RoomQueryController {
           totalPage: Math.ceil(data[0].total / limit),
         }
       );
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  public static async getRoomById(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { roomId } = req.params;
+      const { UUID } = req.user;
+      const roomObjectId = new Types.ObjectId(roomId);
+
+      const data = await room.findById(roomObjectId);
+      if (!data)
+        throw new AppError({ message: "data not found", statusCode: 404 });
+
+      if (!data.users.find((el) => el.userId === UUID))
+        throw new AppError({ message: "Forbidden", statusCode: 403 });
+
+      response({
+        res,
+        code: 200,
+        message: "ok",
+        data: {
+          ...(data as any)._doc,
+          chats: undefined,
+          media: data.chats
+            .filter(
+              (el) =>
+                el.mediaType &&
+                el.image &&
+                el.imageId &&
+                el.status !== "deleted"
+            )
+            .map((el) => ({
+              image: el.image,
+              imageId: el.imageId,
+              mediaType: el.mediaType,
+              senderId: el.senderId,
+            })),
+        },
+      });
     } catch (err) {
       next(err);
     }

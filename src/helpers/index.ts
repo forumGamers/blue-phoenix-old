@@ -5,10 +5,12 @@ export default abstract class Helper {
   public static decryptChats(data: ListRoom[]) {
     return data.map((data) => ({
       ...data,
-      chats: data.chats.map((chat) => ({
-        ...chat,
-        message: chat.message ? encryption.decrypt(chat.message) : "",
-      })),
-    })); //filter yg statusnya deleted jangan ditampilin
+      chats: data.chats
+        .map((chat) => ({
+          ...chat,
+          message: chat.message ? encryption.decrypt(chat.message) : "",
+        }))
+        .filter((el) => el.status !== "deleted"),
+    }));
   }
 }

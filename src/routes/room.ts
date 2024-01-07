@@ -19,6 +19,11 @@ export default new (class RoomRoute extends BaseRoutes {
         checkValidParamObjectId("roomId"),
         RoomCmdController.setAdmin
       )
+      .get(
+        "/:roomId",
+        checkValidParamObjectId("roomId"),
+        RoomQueryController.getRoomById
+      )
       .delete(
         "/:roomId",
         checkValidParamObjectId("roomId"),
